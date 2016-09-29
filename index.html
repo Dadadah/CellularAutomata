@@ -1,0 +1,166 @@
+<html>
+
+  <head>
+  </head>
+
+  <body>
+    <canvas id="cells" width="1200" height="600" style="background-color:#333"></canvas>
+    <script>
+
+      var chance = 0.05;
+
+      var canvas = document.getElementById("cells");
+      var context = canvas.getContext("2d");
+
+      var bw = canvas.width;
+      var bh = canvas.height;
+      var bor = 5;
+      var yi = 0;
+      var xi = 0;
+      var gridSize = 5;
+
+      function drawBoard(){
+        xi = 0;
+        yi = 0;
+        for (var x = 0; x <= bw-(2*bor); x += gridSize) {
+            context.moveTo(0.5 + x + bor, bor);
+            context.lineTo(0.5 + x + bor, bh - bor + 1);
+            yi++;
+        }
+
+
+        for (var x = 0; x <= bh-(2*bor); x += gridSize) {
+            context.moveTo(bor, 0.5 + x + bor);
+            context.lineTo(bw - bor + 1, 0.5 + x + bor);
+            xi++;
+        }
+
+        xi--;
+        yi--;
+
+        context.strokeStyle = "black";
+        context.stroke();
+      }
+
+      drawBoard();
+
+      var cells = new Array(xi);
+
+      for (var x = 0; x < xi; x++) {
+        cells[x] = new Array(yi);
+        for (var y = 0; y < yi; y++) {
+          cells[x][y] = false;
+          if (Math.random() < chance){
+            cells[x][y] = true;
+          }
+        }
+      }
+
+      var nIntervId;
+      nIntervId = setInterval(updateBoard, 100);
+
+      function updateBoard(){
+
+        // DRAWING THE BOARD
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        //drawBoard();
+        for (var x = 0; x < xi; x++) {
+          for (var y = 0; y < yi; y++) {
+            if (cells[x][y]) {
+              //console.log(x + " " + y + " ");
+              context.fillRect( (y*gridSize)+bor, (x*gridSize)+bor, gridSize, gridSize);
+            }
+          }
+        }
+
+        // DECIDING LIFE
+        cells = decideLife();
+      }
+
+      function decideLife() {
+        var newCells = new Array(xi);
+        for (var x = 0; x < xi; x++) {
+          newCells[x] = new Array(yi);
+          for (var y = 0; y < yi; y++) {
+            var ne = checkNeighbors(x, y);
+            if (cells[x][y]) {
+              newCells[x][y] = false;
+              //console.log(x + " " + y + " " + ne);
+              if (ne == 2 || ne == 3) newCells[x][y] = true;
+            }else {
+              if (ne == 3) newCells[x][y] = true;
+            }
+          }
+        }
+        return newCells;
+      }
+
+      function checkNeighbors(x, y) {
+        var neighbors = 0;
+        if (x > 0 && x < xi-1 && y > 0 && y < yi-1) {
+          if (cells[x-1][y-1]) neighbors++;
+          if (cells[x-1][y]) neighbors++;
+          if (cells[x-1][y+1]) neighbors++;
+          if (cells[x][y-1]) neighbors++;
+          if (cells[x][y+1]) neighbors++;
+          if (cells[x+1][y-1]) neighbors++;
+          if (cells[x+1][y]) neighbors++;
+          if (cells[x+1][y+1]) neighbors++;
+        }else if (x == 0) {
+          if (y == 0) {
+            if (cells[x][y+1]) neighbors++;
+            if (cells[x+1][y]) neighbors++;
+            if (cells[x+1][y+1]) neighbors++;
+          }else if (y == yi-1) {
+            if (cells[x][y-1]) neighbors++;
+            if (cells[x+1][y]) neighbors++;
+            if (cells[x+1][y-1]) neighbors++;
+          }else {
+            if (cells[x][y-1]) neighbors++;
+            if (cells[x][y+1]) neighbors++;
+            if (cells[x+1][y-1]) neighbors++;
+            if (cells[x+1][y]) neighbors++;
+            if (cells[x+1][y+1]) neighbors++;
+          }
+        }else if (y == 0) {
+          if (x == xi-1) {
+            if (cells[x-1][y]) neighbors++;
+            if (cells[x-1][y+1]) neighbors++;
+            if (cells[x][y+1]) neighbors++;
+          }else {
+            if (cells[x-1][y]) neighbors++;
+            if (cells[x-1][y+1]) neighbors++;
+            if (cells[x][y+1]) neighbors++;
+            if (cells[x+1][y]) neighbors++;
+            if (cells[x+1][y+1]) neighbors++;
+          }
+        }else if (x == xi-1) {
+          if (y == yi-1) {
+            if (cells[x-1][y-1]) neighbors++;
+            if (cells[x-1][y]) neighbors++;
+            if (cells[x][y-1]) neighbors++;
+          }else {
+            if (cells[x-1][y-1]) neighbors++;
+            if (cells[x-1][y]) neighbors++;
+            if (cells[x-1][y+1]) neighbors++;
+            if (cells[x][y-1]) neighbors++;
+            if (cells[x][y+1]) neighbors++;
+          }
+        }else if (y == yi-1) {
+          if (cells[x-1][y-1]) neighbors++;
+          if (cells[x-1][y]) neighbors++;
+          if (cells[x][y-1]) neighbors++;
+          if (cells[x+1][y-1]) neighbors++;
+          if (cells[x+1][y]) neighbors++;
+        }else {
+          console.log("Something Happened! " + x + " " + y + "");
+        }
+        return neighbors;
+      }
+
+
+
+    </script>
+  </body>
+
+</html>
