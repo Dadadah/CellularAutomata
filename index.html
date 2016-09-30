@@ -4,60 +4,90 @@
   </head>
 
   <body>
-    <canvas id="cells" width="1200" height="600" style="background-color:#333"></canvas>
+    <div>
+      <canvas id="cells" width="1200" height="600" style="background-color:#333"></canvas>
+      <form>
+        Loop:
+        <input type="radio" name="looping" value="true" checked/>true
+        <input type="radio" name="looping" value="false" />false
+        Grid Size:
+        <input type="radio" name="size" value="2" checked />2
+        <input type="radio" name="size" value="5" />5
+        <input type="radio" name="size" value="10" />10
+        <input type="radio" name="size" value="50" />50
+        <input type="range" name="chance" min="0" max="1" step="0.01" value="0.05" />Alive Chance
+        <input type="button" value="Submit" onclick="changeValues();" />
+      </form>
+    </div>
     <script>
 
-      var chance = 0.05;
-
+      // Variables that can't be changed
       var canvas = document.getElementById("cells");
       var context = canvas.getContext("2d");
-
+      context.strokeStyle = "black";
+      var cells = new Array(xi);
       var bw = canvas.width;
       var bh = canvas.height;
-      var bor = 5;
+      var nIntervId;
       var yi = 0;
       var xi = 0;
-      var gridSize = 5;
 
-      function drawBoard(){
-        xi = 0;
-        yi = 0;
-        for (var x = 0; x <= bw-(2*bor); x += gridSize) {
-            context.moveTo(0.5 + x + bor, bor);
-            context.lineTo(0.5 + x + bor, bh - bor + 1);
+      // Variables that can be edited by the user
+      var gridSize = 2;
+      var looping = true;
+      var chance = 0.05;
+
+      function initDrawBoard() {
+        for (var x = 0; x <= bw; x += gridSize) {
+            context.moveTo(0.5 + x , 0);
+            context.lineTo(0.5 + x, bh);
             yi++;
         }
 
-
-        for (var x = 0; x <= bh-(2*bor); x += gridSize) {
-            context.moveTo(bor, 0.5 + x + bor);
-            context.lineTo(bw - bor + 1, 0.5 + x + bor);
+        for (var x = 0; x <= bh; x += gridSize) {
+            context.moveTo(0, 0.5 + x);
+            context.lineTo(bw, 0.5 + x);
             xi++;
         }
 
         xi--;
         yi--;
 
-        context.strokeStyle = "black";
         context.stroke();
       }
 
-      drawBoard();
+      function initialize() {
+        window.clearInterval(nIntervId);
+        initDrawBoard();
 
-      var cells = new Array(xi);
-
-      for (var x = 0; x < xi; x++) {
-        cells[x] = new Array(yi);
-        for (var y = 0; y < yi; y++) {
-          cells[x][y] = false;
-          if (Math.random() < chance){
-            cells[x][y] = true;
+        for (var x = 0; x < xi; x++) {
+          cells[x] = new Array(yi);
+          for (var y = 0; y < yi; y++) {
+            cells[x][y] = false;
+            if (Math.random() < chance){
+              cells[x][y] = true;
+            }
           }
         }
+
+        nIntervId = setInterval(updateBoard, 100);
+
       }
 
-      var nIntervId;
-      nIntervId = setInterval(updateBoard, 100);
+      function drawBoard() {
+        for (var x = 0; x <= bw; x += gridSize) {
+            context.moveTo(0.5 + x, 0);
+            context.lineTo(0.5 + x, bh);
+        }
+
+
+        for (var x = 0; x <= bh; x += gridSize) {
+            context.moveTo(0, 0.5 + x);
+            context.lineTo(bw, 0.5 + x);
+        }
+
+        context.stroke();
+      }
 
       function updateBoard(){
 
@@ -68,7 +98,7 @@
           for (var y = 0; y < yi; y++) {
             if (cells[x][y]) {
               //console.log(x + " " + y + " ");
-              context.fillRect( (y*gridSize)+bor, (x*gridSize)+bor, gridSize, gridSize);
+              context.fillRect( (y*gridSize), (x*gridSize), gridSize, gridSize);
             }
           }
         }
@@ -82,7 +112,7 @@
         for (var x = 0; x < xi; x++) {
           newCells[x] = new Array(yi);
           for (var y = 0; y < yi; y++) {
-            var ne = checkNeighbors(x, y);
+            var ne = checkNeighbors(x,y);
             if (cells[x][y]) {
               newCells[x][y] = false;
               //console.log(x + " " + y + " " + ne);
@@ -97,68 +127,59 @@
 
       function checkNeighbors(x, y) {
         var neighbors = 0;
-        if (x > 0 && x < xi-1 && y > 0 && y < yi-1) {
-          if (cells[x-1][y-1]) neighbors++;
-          if (cells[x-1][y]) neighbors++;
-          if (cells[x-1][y+1]) neighbors++;
-          if (cells[x][y-1]) neighbors++;
-          if (cells[x][y+1]) neighbors++;
-          if (cells[x+1][y-1]) neighbors++;
-          if (cells[x+1][y]) neighbors++;
-          if (cells[x+1][y+1]) neighbors++;
-        }else if (x == 0) {
-          if (y == 0) {
-            if (cells[x][y+1]) neighbors++;
-            if (cells[x+1][y]) neighbors++;
-            if (cells[x+1][y+1]) neighbors++;
-          }else if (y == yi-1) {
-            if (cells[x][y-1]) neighbors++;
-            if (cells[x+1][y]) neighbors++;
-            if (cells[x+1][y-1]) neighbors++;
-          }else {
-            if (cells[x][y-1]) neighbors++;
-            if (cells[x][y+1]) neighbors++;
-            if (cells[x+1][y-1]) neighbors++;
-            if (cells[x+1][y]) neighbors++;
-            if (cells[x+1][y+1]) neighbors++;
+        var testx = 0;
+        var testy = 0;
+        for (var i = -1; i < 2; i++) {
+          for (var j = -1; j < 2; j++) {
+            if (i == 0 && j == 0) continue;
+            testx = x+i;
+            testy = y+j;
+            if (testx < 0) {
+              if (looping) {
+                testx = xi-1;
+              }else {
+                continue;
+              }
+            }
+            if (testx > xi-1) {
+              if (looping) {
+                testx = 0;
+              }else {
+                continue;
+              }
+            }
+            if (testy < 0) {
+              if (looping) {
+                testy = yi-1;
+              }else {
+                continue;
+              }
+            }
+            if (testy > yi-1) {
+              if (looping) {
+                testy = 0;
+              }else {
+                continue;
+              }
+            }
+            if (cells[testx][testy]) neighbors++;
           }
-        }else if (y == 0) {
-          if (x == xi-1) {
-            if (cells[x-1][y]) neighbors++;
-            if (cells[x-1][y+1]) neighbors++;
-            if (cells[x][y+1]) neighbors++;
-          }else {
-            if (cells[x-1][y]) neighbors++;
-            if (cells[x-1][y+1]) neighbors++;
-            if (cells[x][y+1]) neighbors++;
-            if (cells[x+1][y]) neighbors++;
-            if (cells[x+1][y+1]) neighbors++;
-          }
-        }else if (x == xi-1) {
-          if (y == yi-1) {
-            if (cells[x-1][y-1]) neighbors++;
-            if (cells[x-1][y]) neighbors++;
-            if (cells[x][y-1]) neighbors++;
-          }else {
-            if (cells[x-1][y-1]) neighbors++;
-            if (cells[x-1][y]) neighbors++;
-            if (cells[x-1][y+1]) neighbors++;
-            if (cells[x][y-1]) neighbors++;
-            if (cells[x][y+1]) neighbors++;
-          }
-        }else if (y == yi-1) {
-          if (cells[x-1][y-1]) neighbors++;
-          if (cells[x-1][y]) neighbors++;
-          if (cells[x][y-1]) neighbors++;
-          if (cells[x+1][y-1]) neighbors++;
-          if (cells[x+1][y]) neighbors++;
-        }else {
-          console.log("Something Happened! " + x + " " + y + "");
         }
         return neighbors;
       }
 
-
+      function changeValues() {
+        var theForm = document.forms[0];
+        if (theForm["looping"].value == "true") {
+          looping = true;
+        } else {
+          looping = false;
+        }
+        gridSize = theForm["size"].value;
+        chance = theForm["chance"].value;
+        initialize();
+      }
+      initialize();
 
     </script>
   </body>
