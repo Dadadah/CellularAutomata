@@ -11,6 +11,7 @@
         <input type="radio" name="looping" value="true" checked/>true
         <input type="radio" name="looping" value="false" />false
         Grid Size:
+        <input type="radio" name="size" value="1" />1
         <input type="radio" name="size" value="2" checked />2
         <input type="radio" name="size" value="5" />5
         <input type="radio" name="size" value="10" />10
@@ -37,28 +38,24 @@
       var looping = true;
       var chance = 0.05;
 
-      function initDrawBoard() {
+      function calcSize() {
         for (var x = 0; x <= bw; x += gridSize) {
-            context.moveTo(0.5 + x , 0);
-            context.lineTo(0.5 + x, bh);
             yi++;
         }
 
         for (var x = 0; x <= bh; x += gridSize) {
-            context.moveTo(0, 0.5 + x);
-            context.lineTo(bw, 0.5 + x);
             xi++;
         }
 
         xi--;
         yi--;
-
-        context.stroke();
       }
 
       function initialize() {
         window.clearInterval(nIntervId);
-        initDrawBoard();
+        xi = 0;
+        yi = 0;
+        calcSize();
 
         for (var x = 0; x < xi; x++) {
           cells[x] = new Array(yi);
@@ -72,21 +69,6 @@
 
         nIntervId = setInterval(updateBoard, 100);
 
-      }
-
-      function drawBoard() {
-        for (var x = 0; x <= bw; x += gridSize) {
-            context.moveTo(0.5 + x, 0);
-            context.lineTo(0.5 + x, bh);
-        }
-
-
-        for (var x = 0; x <= bh; x += gridSize) {
-            context.moveTo(0, 0.5 + x);
-            context.lineTo(bw, 0.5 + x);
-        }
-
-        context.stroke();
       }
 
       function updateBoard(){
@@ -175,7 +157,7 @@
         } else {
           looping = false;
         }
-        gridSize = theForm["size"].value;
+        gridSize = parseInt(theForm["size"].value);
         chance = theForm["chance"].value;
         initialize();
       }
