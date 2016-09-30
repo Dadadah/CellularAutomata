@@ -7,7 +7,7 @@
     <div>
       <canvas id="cells" width="1200" height="600" style="background-color:#333"></canvas>
       <form>
-        Loop:
+        Wrap:
         <input type="radio" name="looping" value="true" checked/>true
         <input type="radio" name="looping" value="false" />false
         Grid Size:
@@ -16,8 +16,12 @@
         <input type="radio" name="size" value="5" />5
         <input type="radio" name="size" value="10" />10
         <input type="radio" name="size" value="50" />50
-        <input type="range" name="chance" min="0" max="1" step="0.01" value="0.05" />Alive Chance
+        Alive Chance:
+        <input type="range" name="chance" min="0" max="1" step="0.01" value="0.05" />
+        Speed:
+        <input type="range" name="speed" min="1" max="10000" step="1" value="100" />
         <input type="button" value="Submit" onclick="changeValues();" />
+        <input type="button" name="pause" value="Pause" onclick="pauseLife();" />
       </form>
     </div>
     <script>
@@ -37,6 +41,7 @@
       var gridSize = 2;
       var looping = true;
       var chance = 0.05;
+      var speed = 100;
 
       function calcSize() {
         for (var x = 0; x <= bw; x += gridSize) {
@@ -67,7 +72,7 @@
           }
         }
 
-        nIntervId = setInterval(updateBoard, 100);
+        nIntervId = setInterval(updateBoard, speed);
 
       }
 
@@ -159,9 +164,24 @@
         }
         gridSize = parseInt(theForm["size"].value);
         chance = theForm["chance"].value;
+        speed = theForm["speed"].value;
         initialize();
       }
-      initialize();
+
+      function pauseLife() {
+        window.clearInterval(nIntervId);
+        var theForm = document.forms[0];
+        theForm["pause"].value="Resume";
+        theForm["pause"].onclick = resumeLife;
+      }
+
+      function resumeLife() {
+        var theForm = document.forms[0];
+        speed = theForm["speed"].value;
+        theForm["pause"].value="Pause";
+        theForm["pause"].onclick = pauseLife;
+        nIntervId = setInterval(updateBoard, speed);
+      }
 
     </script>
   </body>
