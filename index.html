@@ -43,6 +43,11 @@
       var chance = 0.05;
       var speed = 100;
 
+      //Some stack overflow magic
+      var keys = [];
+      window.onkeyup = function(e) {keys[e.keyCode]=false;}
+      window.onkeydown = function(e) {keys[e.keyCode]=true;}
+
       function calcSize() {
         for (var x = 0; x <= bw; x += gridSize) {
             yi++;
@@ -69,6 +74,11 @@
             if (Math.random() < chance){
               cells[x][y] = true;
             }
+            if (x == Math.round(xi/2)){
+              if (y == Math.round(yi/2)){
+                cells[x][y] = "player";
+              }
+            }
           }
         }
 
@@ -83,8 +93,12 @@
         //drawBoard();
         for (var x = 0; x < xi; x++) {
           for (var y = 0; y < yi; y++) {
-            if (cells[x][y]) {
+            if (cells[x][y] == true) {
               //console.log(x + " " + y + " ");
+              context.fillStyle = "black";
+              context.fillRect( (y*gridSize), (x*gridSize), gridSize, gridSize);
+            }else if (cells[x][y] == "player"){
+              context.fillStyle = "red";
               context.fillRect( (y*gridSize), (x*gridSize), gridSize, gridSize);
             }
           }
@@ -96,9 +110,33 @@
 
       function decideLife() {
         var newCells = new Array(xi);
+        var playerMoved = false;
         for (var x = 0; x < xi; x++) {
           newCells[x] = new Array(yi);
+        }
+        for (var x = 0; x < xi; x++) {
           for (var y = 0; y < yi; y++) {
+            if (cells[x][y] == "player" && !playerMoved){
+              var newx = x;
+              var newy = y;
+              if (keys[87]) {
+                newx = Math.max(newx-1, 0);
+              }
+              if (keys[83]) {
+                newx = Math.min(newx+1, xi-1);
+              }
+              if (keys[65]) {
+                newy = Math.max(newy-1, 0);
+              }
+              if (keys[68]) {
+                newy = Math.min(newy+1, yi-1);
+              }
+              newCells[newx][newy] = "player";
+              playerMoved = true;
+              continue;
+            }else if (newCells[x][y] == "player" && playerMoved){
+              continue;
+            }
             var ne = checkNeighbors(x,y);
             if (cells[x][y]) {
               newCells[x][y] = false;
@@ -149,7 +187,7 @@
                 continue;
               }
             }
-            if (cells[testx][testy]) neighbors++;
+            if (cells[testx][testy] || cells[testx][testy] == "player") neighbors++;
           }
         }
         return neighbors;
